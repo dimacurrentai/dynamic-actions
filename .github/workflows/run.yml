@@ -8,11 +8,13 @@ jobs:
   list:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.gen.outputs.out }}
     steps:
-      - uses: actions/checkout@v4
-      - id: set-matrix
-        run: echo "matrix=$(find . -iname run.sh | sed 's|^\./||' | xargs dirname | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> $GITHUB_OUTPUT
+      - name: clone
+        uses: actions/checkout@v4
+      - name: list
+        id: gen
+        run: echo "out=$(find . -iname run.sh | sed 's|^\./||' | xargs dirname | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> $GITHUB_OUTPUT
   run:
     needs: list
     runs-on: ubuntu-latest
@@ -20,6 +22,7 @@ jobs:
       matrix:
         dir: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
-      - name: run ${{ matrix.dir }}
+      - name: clone
+        uses: actions/checkout@v4
+      - name: ${{ matrix.dir }}
         run: (cd ${{ matrix.dir }}; ./run.sh)
